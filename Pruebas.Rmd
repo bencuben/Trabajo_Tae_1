@@ -1,0 +1,61 @@
+---
+title: "Untitled"
+author: "Sebastian Pino"
+date: "25 de febrero de 2018"
+output: html_document
+---
+
+
+```{r}
+limpiezaHora <- function(x){
+    
+    franja <- substr(x, 7,8)
+    hora <- as.integer(substr(x, 0, 2))
+    minutos <- as.integer(substr(x, 4, 5))
+    
+    if(franja =='AM' && hora!= 12){
+      x <- hora + (minutos/60)
+    }else if(franja =='PM' && hora!= 12){
+      x <- (hora+12) + (minutos/60)
+    }else if(franja =='AM'){
+      x <- (minutos/60)
+    }else{
+      x <- 12 + (minutos/60)
+    }
+    
+    x <- as.double(x)
+    return(x)
+}
+
+vars <- c('01:28 AM', '01:28 PM', '05:11 AM')
+
+vars <- lapply(vars, limpiezaHora)
+vars
+```
+
+```{r}
+  library(raster)
+  accidentalidad2015 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
+  accidentalidad2016 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
+  accidentalidad2017 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
+```
+
+```{r}
+print("2015")
+c(unique(accidentalidad2015@data$COMUNA))
+print("2016")
+c(unique(accidentalidad2016@data$COMUNA))
+print("2017")
+c(unique(accidentalidad2017@data$COMUNA))
+```
+
+
+```{r}
+print("2015")
+c(unique(accidentalidad2015@data$CLASE))
+print("2016")
+c(unique(accidentalidad2016@data$CLASE))
+print("2017")
+c(unique(accidentalidad2017@data$CLASE))
+```
+
