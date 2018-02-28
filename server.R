@@ -88,19 +88,19 @@ shinyServer(function(input, output) {
     popup<-paste(accidentalidad@data$CLASE,accidentalidad@data$BARRIO,sep="<br/>")
     m<-leaflet()
     m<-fitBounds(m, lng1=min(accidentalidad@coords[,1]),
-                 lat1=min(accidentalidad@coords[,2]),
-                 lng2=max(accidentalidad@coords[,1]),
-                 lat2=max(accidentalidad@coords[,2]))
+                  lat1=min(accidentalidad@coords[,2]),
+                  lng2=max(accidentalidad@coords[,1]),
+                  lat2=max(accidentalidad@coords[,2]))
     m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
-    m<-addCircleMarkers(m,
-                        lng = accidentalidad@coords[,1],
-                        lat = accidentalidad@coords[,2],
-                        popup = popup,
-                        radius = 2,
-                        stroke = FALSE,
-                        color=pal(accidentalidad@data$CLASE),
-                        fillOpacity = 0.75
-    )
+    # m<-addCircleMarkers(m,
+    #                     lng = accidentalidad@coords[,1],
+    #                     lat = accidentalidad@coords[,2],
+    #                     popup = popup,
+    #                     radius = 2,
+    #                     stroke = FALSE,
+    #                     color=pal(accidentalidad@data$CLASE),
+    #                     fillOpacity = 0.75
+    # )
     # m<-addLegend(m,"topright",pal=pal,values=accidentalidad@data$CLASE,
     #             title="Tipo de accidente",
     #            labels = accidentalidad@data$CLASE,opacity = 1)
