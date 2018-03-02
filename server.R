@@ -2,33 +2,84 @@ library(shiny)
 library(rgdal)
 library(leaflet)
 library(raster)
-
+library(rgdal)
+library(car)
+library(lubridate)
 
 shinyServer(function(input, output) {
   
   ###Zona de definiciones###
   
   withProgress(message="Cargando base de datos", value = 0, {
-    accidentalidad2015 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
+    # Lectura base de datos
+    accidentalidad.15 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-    accidentalidad2016 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
+    accidentalidad.16 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-    accidentalidad2017 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
+    accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-    accidentalidad <-accidentalidad2015
-    incProgress(25)
-  })
+    #levels(accidentalidad.15@data$clase)
+    
+    
+    accidentalidad.15@data$CLASE<-as.factor(accidentalidad.15@data$CLASE) # La convertimos en factor
+    
+    # Recodificamos los niveles de la clase de accidente 2015
+    
+    accidentalidad.15@data$CLASE<- Recode(accidentalidad.15@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante";
+                                          "Choque"="Choque";"Incendio"="Incendio";
+                                          "Otro"="Otro";
+                                          "Volcamiento"="Volcamiento";
+                                          "Choque y Atropello"="Choque y Atropello"',as.factor.result=T)#Verificamos que sea factor
+    
+    #------------------------------------------------------------------------------------------------------------
+    # Recodificación de la variable clase 2016
+    
+    accidentalidad.16@data$CLASE<-as.factor(accidentalidad.16@data$CLASE)
+    
+    accidentalidad.16@data<-na.omit(accidentalidad.16@data)
+    
+    accidentalidad.16@data$CLASE<- Recode(accidentalidad.16@data$CLASE,'"Atropello"="Atropello";"Caída de Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+                                          "Choque "="Choque";"Incendio"="Incendio";
+                                          "Otro"="Otro";
+                                          "Volcamiento"="Volcamiento"',as.factor.result=T)
+
+#------------------------------------------------------------------------------------------------------------
+# Recodificación de la variable clase 2017
+
+
+  accidentalidad.17@data$CLASE<-as.factor(accidentalidad.17@data$CLASE)
+  
+  accidentalidad.17@data$CLASE<- Recode(accidentalidad.17@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+                                        "Choque "="Choque";"Incendio"="Incendio";
+                                        "Otro"="Otro";
+                                        "Volcamiento"="Volcamiento";
+                                        "Choque y Atropello"="C y A"',as.factor.result=T)
+
+### recodificacion de las horas
+
+  accidentalidad.15@data$HORA<-parse_date_time(accidentalidad.15@data$HORA, '%I:%M %p')
+  accidentalidad.16@data$HORA<-parse_date_time(accidentalidad.16@data$HORA, '%I:%M %p')
+  accidentalidad.17@data$HORA<-parse_date_time(accidentalidad.17@data$HORA, '%I:%M %p')
+  accidentalidad <- accidentalidad.15
+  incProgress(25)
+})
   
   ### FIN Zona de definiciones###
   
   cargarBaseDeDatos <- reactive({
-    withProgress
     switch(input$year,
-           "2015" = accidentalidad2015,
-           "2016" = accidentalidad2016,
-           "2017" = accidentalidad2017
+           "2015" = accidentalidad.15,
+           "2016" = accidentalidad.16,
+           "2017" = accidentalidad.17
     )  
   })
+  
+  actualizarFiltro <- reactive({
+    if(input$filtro == 'Zona'){
+      
+    } 
+  })
+
   
   #cargarBaseDeDatos()
   
@@ -62,7 +113,7 @@ shinyServer(function(input, output) {
     #}
     
     if(input$filtro == 'Zona'){
-      selectInput("x1", "Zonas",
+      selectInput("nombreZona", "Zonas",
                   choices = c(unique(accidentalidad@data$COMUNA))
       )
     }
@@ -76,33 +127,43 @@ shinyServer(function(input, output) {
     # }
     
     if(input$filtro == 'Tipo de Accidente'){
-      selectInput("x2", "Accidentes",
-                  choices = c(unique(accidentalidad@data$CLASE))
+      selectInput("nombreAccidente", "Accidentes",
+                  choices = c(as.character(unique(accidentalidad@data$CLASE)))
       )
     }
   })
   
   output$map <- renderLeaflet({
-    
-    pal <-colorFactor(palette=rainbow(8),levels=unique(accidentalidad@data$CLASE),ordered=F)
-    popup<-paste(accidentalidad@data$CLASE,accidentalidad@data$BARRIO,sep="<br/>")
-    m<-leaflet()
-    m<-fitBounds(m, lng1=min(accidentalidad@coords[,1]),
-                  lat1=min(accidentalidad@coords[,2]),
-                  lng2=max(accidentalidad@coords[,1]),
-                  lat2=max(accidentalidad@coords[,2]))
-    m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
-    # m<-addCircleMarkers(m,
-    #                     lng = accidentalidad@coords[,1],
-    #                     lat = accidentalidad@coords[,2],
-    #                     popup = popup,
-    #                     radius = 2,
-    #                     stroke = FALSE,
-    #                     color=pal(accidentalidad@data$CLASE),
-    #                     fillOpacity = 0.75
-    # )
-    # m<-addLegend(m,"topright",pal=pal,values=accidentalidad@data$CLASE,
-    #             title="Tipo de accidente",
-    #            labels = accidentalidad@data$CLASE,opacity = 1)
+    switch(input$filtro,
+           "Zona" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
+                    select <- subset(accidentalidad@data$COMUNA, accidentalidad@data$COMUNA == input$nombreZona)},
+           "Tipo de Accidente" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
+                    select <- subset(accidentalidad@data$CLASE, accidentalidad@data$CLASE == input$nombreAccidente)}
+    )  
+    show(select)
+    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(select)){
+      pal <-colorFactor(palette=rainbow(length(levels(select))),
+                        levels=unique(select),
+                        ordered=F)
+      popup<-paste(accidentalidad@data$BARRIO,sep="<br/>")
+
+      m<-leaflet()
+      m<-fitBounds(m,
+                   lng1=min(accidentalidad@coords[,1]),
+                   lat1=min(accidentalidad@coords[,2]),
+                   lng2=max(accidentalidad@coords[,1]),
+                   lat2=max(accidentalidad@coords[,2]))
+      m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
+      m<-addCircleMarkers(m,
+                          lng = accidentalidad@coords[,1],
+                          lat = accidentalidad@coords[,2],
+                          popup = popup,
+                          radius = 2,
+                          stroke = FALSE,
+                          color=pal(select),
+                          fillOpacity = 0.75
+      )
+      m
+    }
   })
 })
