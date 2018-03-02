@@ -136,17 +136,14 @@ shinyServer(function(input, output) {
   output$map <- renderLeaflet({
     switch(input$filtro,
            "Zona" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
-                    select <- subset(accidentalidad@data$COMUNA, accidentalidad@data$COMUNA == input$nombreZona)},
+                    select <- input$nombreZona},
            "Tipo de Accidente" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
-                    select <- subset(accidentalidad@data$CLASE, accidentalidad@data$CLASE == input$nombreAccidente)}
+                    select <- input$nombreAccidente}
     )  
-    show(select)
-    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(select)){
-      pal <-colorFactor(palette=rainbow(length(levels(select))),
-                        levels=unique(select),
-                        ordered=F)
-      popup<-paste(accidentalidad@data$BARRIO,sep="<br/>")
 
+    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !identical(select, character(0))){
+      popup<-paste(accidentalidad@data$BARRIO,sep="<br/>")
+       
       m<-leaflet()
       m<-fitBounds(m,
                    lng1=min(accidentalidad@coords[,1]),
@@ -155,14 +152,13 @@ shinyServer(function(input, output) {
                    lat2=max(accidentalidad@coords[,2]))
       m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
       m<-addCircleMarkers(m,
-                          lng = accidentalidad@coords[,1],
-                          lat = accidentalidad@coords[,2],
-                          popup = popup,
-                          radius = 2,
-                          stroke = FALSE,
-                          color=pal(select),
-                          fillOpacity = 0.75
-      )
+                           lng = accidentalidad@coords[,1],
+                           lat = accidentalidad@coords[,2],
+                           popup = popup,
+                           radius = 1.5,
+                           stroke = FALSE,
+                           fillOpacity = 0.75
+       )
       m
     }
   })
