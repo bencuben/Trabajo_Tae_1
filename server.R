@@ -140,11 +140,18 @@ shinyServer(function(input, output) {
                         accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
                     }
                     select <- input$nombreZona},
-           "Tipo de Accidente" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
-                    select <- input$nombreAccidente}
+           "Tipo de Accidente" = {if(is.null(input$nombreAccidente)){
+             
+                                  }else if(input$nombreAccidente == "NA"){
+                                    accidentalidad <- subset(accidentalidad, is.na(accidentalidad@data$COMUNA))
+                                  }else {
+                                    accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
+                                    
+                                  }
+                                  select <- input$nombreAccidente}
     )
     
-    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(input$nombreZona)){
+    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(select)){
       popup<-paste(accidentalidad@data$BARRIO)
        
       m<-leaflet()

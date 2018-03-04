@@ -5,8 +5,8 @@ account: dacanoc
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 288216
-bundleId: 1239292
+bundleId: 1251366
 url: https://dacanoc.shinyapps.io/Entrega1/
-when: 1519589333.59017
+when: 1520137275.19088
 asMultiple: FALSE
 asStatic: FALSE
