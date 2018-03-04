@@ -26,8 +26,6 @@ shinyUI(
                                                                       min = 0, max = 24, value = c(10,11)),
                                                          hr(),
                                                          fluidRow(column(3, verbatimTextOutput("value")))
-                                                         
-                                                         
                                         ),
                                         conditionalPanel("input.filtro == 'Zona'",
                                                          uiOutput("zonas")
@@ -35,8 +33,6 @@ shinyUI(
                                         conditionalPanel("input.filtro == 'Tipo de Accidente'",
                                                          uiOutput("tipoAccidente")
                                         )
-                                        
-                                        
                           )
                       )
              ),

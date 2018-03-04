@@ -128,7 +128,6 @@ shinyServer(function(input, output) {
   output$map <- renderLeaflet({
     
     accidentalidad <- cargarBaseDeDatos()
-    
     switch(input$filtro,
            "Zona" = {if(is.null(input$nombreZona)){
              
@@ -146,12 +145,16 @@ shinyServer(function(input, output) {
                                     accidentalidad <- subset(accidentalidad, is.na(accidentalidad@data$COMUNA))
                                   }else {
                                     accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
-                                    
                                   }
-                                  select <- input$nombreAccidente}
+                                  select <- input$nombreAccidente},
+           "Hora" = {Inicio <- input$hoursRange[1] 
+                     Fin <- input$hoursRange[2] 
+                     accidentalidad@data$HORA <- as.double(substr(accidentalidad@data$HORA,9,10)) + as.double(substr(accidentalidad@data$HORA,12,13))/60
+                     accidentalidad <- subset(accidentalidad, accidentalidad@data$HORA >= Inicio & accidentalidad@data$HORA < Fin)}
     )
     
-    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(select)){
+    if(!is.null(select) || input$filtro == "Hora"){
+
       popup<-paste(accidentalidad@data$BARRIO)
        
       m<-leaflet()
