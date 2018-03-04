@@ -10,6 +10,7 @@ shinyServer(function(input, output) {
   
   ###Zona de definiciones###
   
+  # Mientras se cargan las bases de datos se muestran barra de progreso de carga
   withProgress(message="Cargando base de datos", value = 0, {
     # Lectura base de datos
     accidentalidad.15 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
@@ -18,13 +19,10 @@ shinyServer(function(input, output) {
     incProgress(25)
     accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-    #levels(accidentalidad.15@data$clase)
     
+    accidentalidad.15@data$CLASE<-as.factor(accidentalidad.15@data$CLASE) # Se convierte en factor
     
-    accidentalidad.15@data$CLASE<-as.factor(accidentalidad.15@data$CLASE) # La convertimos en factor
-    
-    # Recodificamos los niveles de la clase de accidente 2015
-    
+    # Se recodifica los niveles de la clase de accidente 2015
     accidentalidad.15@data$CLASE<- Recode(accidentalidad.15@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante";
                                           "Choque"="Choque";"Incendio"="Incendio";
                                           "Otro"="Otro";
@@ -33,7 +31,6 @@ shinyServer(function(input, output) {
     
     #------------------------------------------------------------------------------------------------------------
     # Recodificación de la variable clase 2016
-    
     accidentalidad.16@data$CLASE<-as.factor(accidentalidad.16@data$CLASE)
     
     accidentalidad.16@data<-na.omit(accidentalidad.16@data)
@@ -43,10 +40,8 @@ shinyServer(function(input, output) {
                                           "Otro"="Otro";
                                           "Volcamiento"="Volcamiento"',as.factor.result=T)
 
-#------------------------------------------------------------------------------------------------------------
-# Recodificación de la variable clase 2017
-
-
+  #------------------------------------------------------------------------------------------------------------
+  # Recodificación de la variable clase 2017
   accidentalidad.17@data$CLASE<-as.factor(accidentalidad.17@data$CLASE)
   
   accidentalidad.17@data$CLASE<- Recode(accidentalidad.17@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
@@ -55,8 +50,7 @@ shinyServer(function(input, output) {
                                         "Volcamiento"="Volcamiento";
                                         "Choque y Atropello"="C y A"',as.factor.result=T)
 
-### recodificacion de las horas
-
+  ### recodificacion de las horas
   accidentalidad.15@data$HORA<-parse_date_time(accidentalidad.15@data$HORA, '%I:%M %p')
   accidentalidad.16@data$HORA<-parse_date_time(accidentalidad.16@data$HORA, '%I:%M %p')
   accidentalidad.17@data$HORA<-parse_date_time(accidentalidad.17@data$HORA, '%I:%M %p')
@@ -64,8 +58,7 @@ shinyServer(function(input, output) {
   incProgress(25)
 })
   
-  ### FIN Zona de definiciones###
-  
+  # Función para recargar Bases de datos de acuerdo al año 
   cargarBaseDeDatos <- reactive({
     switch(input$year,
            "2015" = accidentalidad.15,
@@ -74,39 +67,15 @@ shinyServer(function(input, output) {
     )  
   })
 
-
+  ### FIN Zona de definiciones###
   
-  #cargarBaseDeDatos()
-  
-  limpiezaHora <- function(x){
-    
-    franja <- substr(x, 7,8)
-    hora <- as.integer(substr(x, 0, 2))
-    minutos <- as.integer(substr(x, 4, 5))
-    
-    if(franja =='AM' && hora!= 12){
-      x <- hora + (minutos/60)
-    }else if(franja =='PM' && hora!= 12){
-      x <- (hora+12) + (minutos/60)
-    }else if(franja =='AM'){
-      x <- (minutos/60)
-    }else{
-      x <- 12 + (minutos/60)
-    }
-    
-    x <- as.double(x)
-    return(x)
-  }
-  
+  # Carga de nombres de las Zonas 
   output$zonas <- renderUI({
     
+    # Recarga de base de datos
     accidentalidad <- cargarBaseDeDatos()
     
-    
-    # if (is.null(input$filtro)){
-    #   return()  
-    #}
-    
+    # Se muestran los nombres de las comunas cuando se eligen en el filtro "Zona"
     if(input$filtro == 'Zona'){
       selectInput("nombreZona", "Zonas",
                   choices = c(unique(accidentalidad@data$COMUNA))
@@ -114,10 +83,13 @@ shinyServer(function(input, output) {
     }
   })
   
+  # Carga de nombres de acidentes 
   output$tipoAccidente <- renderUI({
     
+    # Recarga de base de datos
     accidentalidad <- cargarBaseDeDatos()
 
+    # Se muestran los nombres de los accidentes cuando se eligen en el filtro "Accidente"
     if(input$filtro == 'Tipo de Accidente'){
       selectInput("nombreAccidente", "Accidentes",
                   choices = c(as.character(unique(accidentalidad@data$CLASE)))
@@ -125,13 +97,17 @@ shinyServer(function(input, output) {
     }
   })
   
+  # Carga del mapa
   output$map <- renderLeaflet({
     
+    # Recarga de base de datos
     accidentalidad <- cargarBaseDeDatos()
+    
+    # Se hace una busqueda en la Base de datos según los filtros escogidos
     switch(input$filtro,
-           "Zona" = {if(is.null(input$nombreZona)){
+           "Zona" = {if(is.null(input$nombreZona)){ #Al inicio cuando se carga la página el input es nulo
              
-                    }else if(input$nombreZona == "NA"){
+                    }else if(input$nombreZona == "NA"){ 
                       accidentalidad <- subset(accidentalidad, is.na(accidentalidad@data$COMUNA))
                     }else if(input$nombreZona == "0"){
                       accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == 0)
@@ -139,7 +115,7 @@ shinyServer(function(input, output) {
                         accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
                     }
                     select <- input$nombreZona},
-           "Tipo de Accidente" = {if(is.null(input$nombreAccidente)){
+           "Tipo de Accidente" = {if(is.null(input$nombreAccidente)){ #Al inicio cuando se carga la página el input es nulo
              
                                   }else if(input$nombreAccidente == "NA"){
                                     accidentalidad <- subset(accidentalidad, is.na(accidentalidad@data$COMUNA))
@@ -147,12 +123,20 @@ shinyServer(function(input, output) {
                                     accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
                                   }
                                   select <- input$nombreAccidente},
-           "Hora" = {Inicio <- input$hoursRange[1] 
-                     Fin <- input$hoursRange[2] 
-                     accidentalidad@data$HORA <- as.double(substr(accidentalidad@data$HORA,9,10)) + as.double(substr(accidentalidad@data$HORA,12,13))/60
-                     accidentalidad <- subset(accidentalidad, accidentalidad@data$HORA >= Inicio & accidentalidad@data$HORA < Fin)}
+           "Hora" = { # Se obtienen las dos horas del slider hourRange
+                      Inicio <- input$hoursRange[1] 
+                      Fin <- input$hoursRange[2]  
+                     
+                      # Como las horas no están como numéricas, se convierten a una unidad de tiempo (Horas)
+                      # En la posición 9 a 10 está la hora, en la posición 12 a 13 están los minutos,
+                      accidentalidad@data$HORA <- as.double(substr(accidentalidad@data$HORA,9,10)) + as.double(substr(accidentalidad@data$HORA,12,13))/60
+                      
+                      # Se hace una busqueda en la Base de datos según el rango de horas escogido
+                      accidentalidad <- subset(accidentalidad, accidentalidad@data$HORA >= Inicio & accidentalidad@data$HORA < Fin)}
     )
     
+    # Cuando no hay nada seleccionado no hay que cargar mapa aún, cuando se coge filtro Hora no se carga ningun select
+    # de algún input
     if(!is.null(select) || input$filtro == "Hora"){
 
       popup<-paste(accidentalidad@data$BARRIO)
