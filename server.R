@@ -73,12 +73,7 @@ shinyServer(function(input, output) {
            "2017" = accidentalidad.17
     )  
   })
-  
-  actualizarFiltro <- reactive({
-    if(input$filtro == 'Zona'){
-      
-    } 
-  })
+
 
   
   #cargarBaseDeDatos()
@@ -122,10 +117,7 @@ shinyServer(function(input, output) {
   output$tipoAccidente <- renderUI({
     
     accidentalidad <- cargarBaseDeDatos()
-    # if (is.null(input$filtro)){
-    #   return()  
-    # }
-    
+
     if(input$filtro == 'Tipo de Accidente'){
       selectInput("nombreAccidente", "Accidentes",
                   choices = c(as.character(unique(accidentalidad@data$CLASE)))
@@ -134,31 +126,44 @@ shinyServer(function(input, output) {
   })
   
   output$map <- renderLeaflet({
+    
+    accidentalidad <- cargarBaseDeDatos()
+    
     switch(input$filtro,
-           "Zona" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
+           "Zona" = {if(is.null(input$nombreZona)){
+             
+                    }else if(input$nombreZona == "NA"){
+                      accidentalidad <- subset(accidentalidad, is.na(accidentalidad@data$COMUNA))
+                    }else if(input$nombreZona == "0"){
+                      accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == 0)
+                    }else{
+                        accidentalidad <- subset(accidentalidad, accidentalidad@data$COMUNA == input$nombreZona)
+                    }
                     select <- input$nombreZona},
            "Tipo de Accidente" = {accidentalidad <- subset(accidentalidad, accidentalidad@data$CLASE == input$nombreAccidente)
                     select <- input$nombreAccidente}
-    )  
-
-    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !identical(select, character(0))){
-      popup<-paste(accidentalidad@data$BARRIO,sep="<br/>")
+    )
+    
+    if((input$filtro == 'Zona' || input$filtro == 'Tipo de Accidente') && !is.null(input$nombreZona)){
+      popup<-paste(accidentalidad@data$BARRIO)
        
       m<-leaflet()
       m<-fitBounds(m,
                    lng1=min(accidentalidad@coords[,1]),
                    lat1=min(accidentalidad@coords[,2]),
                    lng2=max(accidentalidad@coords[,1]),
-                   lat2=max(accidentalidad@coords[,2]))
+                   lat2=max(accidentalidad@coords[,2])
+                  )
       m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
       m<-addCircleMarkers(m,
                            lng = accidentalidad@coords[,1],
                            lat = accidentalidad@coords[,2],
                            popup = popup,
-                           radius = 1.5,
+                           radius = 2,
                            stroke = FALSE,
                            fillOpacity = 0.75
        )
+      m <- setView(m, mean(accidentalidad@coords[,1]), mean(accidentalidad@coords[,2]), zoom = 14)
       m
     }
   })

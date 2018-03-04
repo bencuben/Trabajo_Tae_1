@@ -43,7 +43,3 @@ shinyUI(
              tabPanel(title= "Inferencia")
   )
 )
-
-
-
-
