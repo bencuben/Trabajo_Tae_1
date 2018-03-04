@@ -1,0 +1,128 @@
+---
+title: "Análisis descriptivo bases"
+author: "Yeison Ocampon"
+date: "13 de febrero de 2018"
+output: html_document
+---
+
+# Procedemos a leer las bases de datos
+
+# **Bases de datos con el shapefile para el 2015, ademas la corrección de variables**
+
+
+```{r, echo=FALSE,message=FALSE}
+library(rgdal)
+library(raster)
+library(leaflet)
+library(car)
+library(lubridate)
+
+# Lectura base de datos
+accidentalidad.15 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
+accidentalidad.16 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
+accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
+
+#levels(accidentalidad.15@data$clase)
+
+
+accidentalidad.15@data$CLASE<-as.factor(accidentalidad.15@data$CLASE) # La convertimos en factor
+
+# Recodificamos los niveles de la clase de accidente 2015
+
+accidentalidad.15@data$CLASE<- Recode(accidentalidad.15@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante";
+"Choque"="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento";
+"Choque y Atropello"="Choque y Atropello"',as.factor.result=T)#Verificamos que sea factor
+
+#------------------------------------------------------------------------------------------------------------
+# Recodificación de la variable clase 2016
+  
+accidentalidad.16@data$CLASE<-as.factor(accidentalidad.16@data$CLASE)
+  
+accidentalidad.16@data<-na.omit(accidentalidad.16@data)
+
+accidentalidad.16@data$CLASE<- Recode(accidentalidad.16@data$CLASE,'"Atropello"="Atropello";"Caída de Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento"',as.factor.result=T)
+
+#------------------------------------------------------------------------------------------------------------
+# Recodificación de la variable clase 2017
+
+
+accidentalidad.17@data$CLASE<-as.factor(accidentalidad.17@data$CLASE)
+
+accidentalidad.17@data$CLASE<- Recode(accidentalidad.17@data$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento";
+"Choque y Atropello"="C y A"',as.factor.result=T)
+
+### recodificacion de las horas
+
+accidentalidad.15@data$HORA<-parse_date_time(accidentalidad.15@data$HORA, '%I:%M %p')
+accidentalidad.16@data$HORA<-parse_date_time(accidentalidad.16@data$HORA, '%I:%M %p')
+accidentalidad.17@data$HORA<-parse_date_time(accidentalidad.17@data$HORA, '%I:%M %p')
+
+```
+
+```{r,echo=F}
+input=NULL
+input$ano=2016
+input$clase="Atropello"
+input$hora1="01:00 AM"
+input$hora2="11:00 PM"
+input$barrio= "La Candelaria"
+
+if(input$ano==2015){
+  aux<-accidentalidad.15
+} else{
+  if(input$ano==2016){
+    aux<-accidentalidad.16
+  }else{
+    aux<-accidentalidad.17
+  }
+  
+}
+
+aux1<-subset(aux,aux@data$CLASE==input$clase 
+             & aux@data$BARRIO==input$barrio
+             & aux@data$HORA >= parse_date_time(input$hora1, '%I:%M %p')
+             & aux@data$HORA >= parse_date_time(input$hora2, '%I:%M %p'))
+
+
+# Procedemos a leer los mapas en
+
+
+# Paleta de colores
+
+pal <-colorFactor(palette=rainbow(length(levels(aux1@data$CLASE))),
+                  levels=unique(aux1@data$CLASE),
+                  ordered=F)
+popup<-paste(aux1@data$CLASE,aux1@data$BARRIO,sep="<br/>")
+
+m<-leaflet()
+m<-fitBounds(m,
+             lng1=min(aux1@coords[,1]), 
+             lat1=min(aux1@coords[,2]), 
+             lng2=max(aux1@coords[,1]),
+             lat2=max(aux1@coords[,2]))
+m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
+m<-addCircleMarkers(m,
+                    lng = aux1@coords[,1],
+                    lat = aux1@coords[,2],
+                    popup = popup, 
+                    radius = 2, 
+                    stroke = FALSE,
+                    color=pal(aux1@data$CLASE),
+                    fillOpacity = 0.75
+)
+m<-addLegend(m,"topright",pal=pal,values=aux1@data$CLASE, 
+             title="Tipo de accidente",
+             labels = aux1@data$CLASE,opacity = 1)
+m
+
+```
+
+

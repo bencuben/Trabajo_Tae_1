@@ -1,0 +1,219 @@
+---
+title: "Accidentalidad en medellín"
+author: "Brahian Cano Urrego"
+date: "13 de febrero de 2018"
+output: html_document
+---
+
+#Introducción 
+
+La movilidad como muchos otros factores son importantes en la economía
+
+#Analisís Descriptivo
+
+Con base a la información suministrada por la alcaldia de los años 2015 a 2017 en sus bases de datos libres, haremos un analisís estadistico, centrandonos en los factores: Barrio, Tipo de Accidente, Hora de los accidentes.
+
+```{r,echo=FALSE, eval=T,message=F,warning=F}
+#lectura de las bases por año
+library(lubridate)
+library(rgdal)
+library(raster)
+library(leaflet)
+library(car)
+base1 <- read.csv2('Accidentalidad_2015.csv', sep = ",", na.strings = "", encoding = "UTF-8")
+base2 <- read.csv2('Accidentalidad_2016.csv', sep = ",", na.strings = "", encoding = "UTF-8")
+base3 <- read.csv2('Accidentalidad_2017.csv', sep = ",", na.strings = "", encoding = "UTF-8")
+```
+
+
+
+# Para el año 2015
+
+```{r, echo=FALSE}
+# tratamiento a la base 1 |||-----------------------------------------------------------------
+
+# Recodificación de la variable clase
+base1<-na.omit(base1)
+base1$CLASE<- Recode(base1$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caída de Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento"',as.factor.result=T)
+
+### descriptiva sobre el tiempo
+
+base1$FECHA <- as.Date(base1$FECHA)
+base1$MES<-as.factor(as.character(base1$FECHA,format="%b",ordered=F))
+base1$MES <- factor(base1$MES,levels = levels(base1$MES)[c(4,5,8,1,9,7,6,2,12,11,10,3)])
+
+
+#table(base1$MES) no es necesario por el momento
+
+barplot(table(base1$MES),las=2,
+        main="Numero de accidentes por mes",ylab="Frecuencias",
+        col="lightblue")
+```
+
+En el grafico de barras no se puede apreciar una diferencia signficativa, en el numero de accidentes por mes; pero podemos observar que la frecuencia mas alta se encuentra en septiembre con 3761 y la mas baja en enero con 2924.
+
+```{r,echo=F}
+
+
+### descriptiva sobre la clase de accidente
+
+#levels(base1$CLASE)
+
+# encontramos niveles mal arreglados, se procede a corregir
+
+base1$CLASE<- Recode(base1$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento";
+"Choque y Atropello"="C y A"',as.factor.result=T)
+aux<-as.numeric(table(base1$CLASE))
+names(aux)<-levels(base1$CLASE)
+xx <-barplot(aux,ylim=c(0,1.1*max(aux)),las=2,col="lightblue",main="tipo de Accidentes(2015)",cex.names=0.65	)
+text(x =xx, y = aux, label = aux, pos = 3, cex = 0.8)
+grid()
+```
+
+Claramente se puede observar que el tipo de accidente que predomina para este año es el de los choques, es el accidente mas comun en la movilidad y es mucho mas frecuente que por ejemplo los atropellos que es la segunda categoria con mas frecuencia.
+
+En la siguiente Imagen se presenta un Top 10 de los Barrios con menor y mayor casos de accidentalidad respectivamente.
+
+```{r,echo=F}
+
+# descriptivo para el barrio
+tablita.15<-sort(table(base1$BARRIO))
+head(tablita.15,10)
+tail(tablita.15,10)
+```
+
+
+```{r,echo=F}
+
+#Horas
+base1$HORA<-parse_date_time(base1$HORA, '%I:%M %p')
+#summary(base1$HORA)
+rango1<-  cut(base1$HORA, seq(min(base1$HORA), max(base1$HORA)+120, by=3600, include.lowest=T))
+names(rango1)<-as.character(1:24)
+#summary(rango1)
+barplot(table(rango1),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora 2015")
+
+```
+
+En este grafico podemos ver un acercamiento al comportamiento de la accidentalidad por horas, donde podemos destacar los picos de frecuencia dentro del rango de 6am a 1pm, y resaltamos tambien que los horarios con menos accidentalidad se ubican entre las 2pm y la 1 am
+
+
+
+# Para el 2016
+
+```{r, echo=FALSE}
+# tratamiento a la base 2 |||-----------------------------------------------------------------
+
+# Recodificación de la variable clase
+base2<-na.omit(base2)
+base2$CLASE<- Recode(base2$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caída de Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento"',as.factor.result=T)
+
+### descriptiva sobre el tiempo
+
+base2$FECHA <- as.Date(base2$FECHA)
+base2$MES<-as.factor(as.character(base2$FECHA,format="%b",ordered=F))
+base2$MES <- factor(base2$MES,levels = levels(base2$MES)[c(4,5,8,1,9,7,6,2,12,11,10,3)])
+
+
+table(base2$MES)
+barplot(table(base2$MES),las=2,
+        main="Numero de accidentes por mes",ylab="Frecuencias",
+        col="lightblue")
+
+### descriptiva sobre la clase de accidente
+
+levels(base2$CLASE)
+
+# encontramos niveles mal arreglados, se procede a corregir
+
+base2$CLASE<- Recode(base2$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento";
+"Choque y Atropello"="C y A"',as.factor.result=T)
+aux<-as.numeric(table(base2$CLASE))
+names(aux)<-levels(base2$CLASE)
+xx <-barplot(aux,ylim=c(0,1.1*max(aux)),las=2,col="lightblue",main="tipo de Accidentes(2015)",cex.names=0.65	)
+text(x =xx, y = aux, label = aux, pos = 3, cex = 0.8)
+grid()
+
+# descriptivo para el barrio
+tablita.16<-sort(table(base2$BARRIO))
+head(tablita.16,10)
+tail(tablita.16,10)
+
+#Horas
+base2$HORA<-parse_date_time(base2$HORA, '%I:%M %p')
+summary(base2$HORA)
+rango2<-  cut(base2$HORA, seq(min(base2$HORA), max(base2$HORA)+60, by=3600, include.lowest=T))
+names(rango2)<-as.character(1:24)
+summary(rango2)
+barplot(table(rango2),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora 2016")
+```
+
+# Para el año 2017
+```{r,echo=F}
+
+
+
+base3$FECHA <- as.Date(base3$FECHA)
+base3$MES<-as.factor(as.character(base3$FECHA,format="%b",ordered=F))
+base3$MES <- factor(base3$MES,levels = levels(base3$MES)[c(4,5,8,1,9,7,6,2,12,11,10,3)])
+
+
+table(base3$MES)
+barplot(table(base3$MES),las=2,
+        main="Numero de accidentes por mes",ylab="Frecuencias",
+        col="lightblue")
+
+### descriptiva sobre la clase de accidente
+
+levels(base3$CLASE)
+
+# encontramos niveles mal arreglados, se procede a corregir
+
+base3$CLASE<- Recode(base3$CLASE,'"Atropello"="Atropello";"Caída Ocupante"="Caída Ocupante";"Caida Ocupante"="Caída Ocupante";"Choque"="Choque";
+"Choque "="Choque";"Incendio"="Incendio";
+                      "Otro"="Otro";
+"Volcamiento"="Volcamiento";
+"Choque y Atropello"="C y A"',as.factor.result=T)
+aux<-as.numeric(table(base3$CLASE))
+names(aux)<-levels(base3$CLASE)
+xx <-barplot(aux,ylim=c(0,1.1*max(aux)),las=2,col="lightblue",main="tipo de Accidentes(2017)",cex.names=0.65	)
+text(x =xx, y = aux, label = aux, pos = 3, cex = 0.8)
+grid()
+
+# descriptivo para el barrio
+tablita.17<-sort(table(base3$BARRIO))
+head(tablita.17,10)
+tail(tablita.17,10)
+
+#Horas
+base3$HORA<-parse_date_time(base3$HORA, '%I:%M %p')
+summary(base3$HORA)
+rango<-  cut(base3$HORA, seq(min(base3$HORA), max(base3$HORA)+60, by=3600, include.lowest=T))
+names(rango)<-as.character(1:24)
+summary(rango)
+barplot(table(rango),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora")
+#-------------------------------------------------------------------------------------------
+```
+
+### Gráficos comparativos
+
+```{r, echo=FALSE}
+op<- par(mfrow=c(1,3))
+barplot(table(rango1),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora 2015")
+barplot(table(rango2),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora 2016")
+barplot(table(rango),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de la accidentalidad por hora 2017")
+par(op)
+```
+
