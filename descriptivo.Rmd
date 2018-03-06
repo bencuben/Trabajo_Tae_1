@@ -217,3 +217,27 @@ barplot(table(rango),las=2,names.arg=c(1:24),col="lightblue",main="frecuencia de
 par(op)
 ```
 
+
+```{r}
+
+aux1 <- subset(accidentalidad.15, accidentalidad.15@data$COMUNA == "Corregimiento de San Antonio de Prado")
+popup<-paste(aux1@data$CLASE,aux1@data$BARRIO,sep="<br/>")
+
+m<-leaflet()
+m<-fitBounds(m,
+             lng1=min(aux1@coords[,1]), 
+             lat1=min(aux1@coords[,2]), 
+             lng2=max(aux1@coords[,1]),
+             lat2=max(aux1@coords[,2]))
+m<-addProviderTiles(m,provider="OpenStreetMap.Mapnik")
+m<-addCircleMarkers(m,
+                    lng = aux1@coords[,1],
+                    lat = aux1@coords[,2],
+                    popup = popup, 
+                    radius = 2, 
+                    stroke = FALSE,
+                    fillOpacity = 0.75
+)
+m
+```
+
