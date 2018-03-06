@@ -108,7 +108,6 @@ shinyServer(function(input, output) {
     # de algún input
     if(!is.null(select)){
   
-      show(head(accidentalidad))
       popup<-paste(accidentalidad@data$BARRIO)
       
       m<-leaflet()
@@ -126,6 +125,7 @@ shinyServer(function(input, output) {
                           stroke = FALSE,
                           fillOpacity = 0.75
       )
+      m <- setView(m, mean(accidentalidad@coords[,1]), min(accidentalidad@coords[,2]), zoom=14)
       m
     }
   })
