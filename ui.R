@@ -9,7 +9,7 @@ shinyUI(
   # Construcción de interfaz
   navbarPage("MAPAS",
              # Estadística Descriptiva: Tab para visualizar los mapas
-             tabPanel(title= "Estadistica Descriptiva",
+             tabPanel(title= "Estadística Descriptiva",
                       div(class="outer",
                           tags$head(
                             
