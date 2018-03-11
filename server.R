@@ -58,33 +58,33 @@ shinyServer(function(input, output) {
     return(base)
   }
   
-  # withProgress(message="Construyendo modelo", value= 0,{
-  #   # Se copian las bases de datos para el modelo
-  #   accidentalidad2.15 <- accidentalidad.15
-  #   accidentalidad2.16 <- accidentalidad.16
-  #   accidentalidad2.17 <- accidentalidad.17
-  #   incProgress(10)
-  #   
-  #   # Creación variable respues por base
-  #   accidentalidad2.15 <- buildRes(accidentalidad2.15)
-  #   accidentalidad2.16 <- buildRes(accidentalidad2.16)
-  #   accidentalidad2.17 <- buildRes(accidentalidad2.17)
-  #   incProgress(15)
-  #   
-  #   # Omisión de NA's
-  #   accidentalidad2.15@data <- na.omit(accidentalidad2.15@data)
-  #   accidentalidad2.16@data <- na.omit(accidentalidad2.16@data) 
-  #   accidentalidad2.17@data <- na.omit(accidentalidad2.17@data) 
-  #   incProgress(15)
-  #   
-  #   # Ajustes al modelo logit
-  #   mod.15 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.15@data)
-  #   incProgress(20)
-  #   mod.16 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.16@data)
-  #   incProgress(20)
-  #   mod.17 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
-  #   incProgress(20)
-  # })
+  withProgress(message="Construyendo modelo", value= 0,{
+    # Se copian las bases de datos para el modelo
+    accidentalidad2.15 <- accidentalidad.15
+    accidentalidad2.16 <- accidentalidad.16
+    accidentalidad2.17 <- accidentalidad.17
+    incProgress(10)
+    
+    # Creación variable respues por base
+    accidentalidad2.15 <- buildRes(accidentalidad2.15)
+    accidentalidad2.16 <- buildRes(accidentalidad2.16)
+    accidentalidad2.17 <- buildRes(accidentalidad2.17)
+    incProgress(15)
+    
+    # Omisión de NA's
+    accidentalidad2.15@data <- na.omit(accidentalidad2.15@data)
+    accidentalidad2.16@data <- na.omit(accidentalidad2.16@data) 
+    accidentalidad2.17@data <- na.omit(accidentalidad2.17@data) 
+    incProgress(15)
+    
+    # Ajustes al modelo logit
+    mod.15 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.15@data)
+    incProgress(20)
+    mod.16 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.16@data)
+    incProgress(20)
+    mod.17 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
+    incProgress(20)
+  })
   
   # Función para recargar Bases de datos de acuerdo al año 
   cargarBaseDeDatos <- reactive({
@@ -97,9 +97,9 @@ shinyServer(function(input, output) {
   
   cargarBaseDeDatos2 <- reactive({
     switch(input$year2,
-           "2015" = accidentalidad.15,
-           "2016" = accidentalidad.16,
-           "2017" = accidentalidad.17
+           "2015" = accidentalidad2.15,
+           "2016" = accidentalidad2.16,
+           "2017" = accidentalidad2.17
     )  
   })
   
@@ -139,10 +139,10 @@ shinyServer(function(input, output) {
     accidentalidad2 <- cargarBaseDeDatos2()
     
     # Se muestran los nombres de los diseños cuando se eligen en el filtro2  "Diseño"
-      selectInput("nombreDiseños", "Diseño",
-                  choices = c(as.character(sort(unique(accidentalidad2@data$DISENO), na.last = FALSE)))
-      )
-    })
+    selectInput("nombreDiseños", "Diseño",
+                choices = c(as.character(sort(unique(accidentalidad2@data$DISENO))))
+    )
+  })
   
   # Carga de nombres de barrios
   output$barrios<- renderUI({
@@ -150,13 +150,13 @@ shinyServer(function(input, output) {
     accidentalidad2 <- cargarBaseDeDatos2()
     
     selectInput("nombreBarrios", "Barrio",
-                choices = c(as.character(sort(unique(accidentalidad2@data$BARRIO), na.last = FALSE)))
+                choices = c(as.character(sort(unique(accidentalidad2@data$BARRIO))))
     )
   })
   
   # Carga del mapa
   output$map <- renderLeaflet({
-
+    
     # Recarga de base de datos
     accidentalidad <- cargarBaseDeDatos()
     
@@ -225,9 +225,35 @@ shinyServer(function(input, output) {
   })
   
   output$plot <- renderPlot({
-    input$newplot
-    # Add a little noise to the cars data
-    cars2 <- cars + rnorm(nrow(cars))
-    plot(cars2)
+    
+    if(!is.null(input$nombreDiseños) && !is.null(input$nombreBarrios)){
+      mod <- switch(input$year2,
+                    "2015" = mod.15,
+                    "2016" = mod.16,
+                    "2017" = mod.17
+      )
+      
+      hora <- {if(input$Hora == 0 || input$Hora == 24){
+        paste(12,":00 AM")
+      } else if(input$Hora < 12){
+        paste(input$Hora, ":00 AM")
+      } else if(input$Hora == 12){
+        paste(input$Hora, ":00 PM")
+      } else
+        paste(input$Hora-12,":00 PM")
+      }
+      
+      hora <- parse_date_time(hora, '%I:%M %p') 
+      
+      log.odds <- predict(mod,data.frame(HORA=hora,BARRIO=input$nombreBarrios,DISENO=input$nombreDiseños))
+      round(1/(exp(-log.odds)+1),4)
+      
+      prob <- round(1/(exp(-log.odds)+1),4)
+      
+      plot(c(0,10),c(0,10), type = "n", axes = FALSE,
+           ylab = "", xlab = "", asp = 1)
+      text(3,5,"Probabilidad de lesión o muerte en accidente: \n",cex=1.2, col="red")
+      text(3,5,paste("\n",prob*100, "%"), cex = 2 , col="red")
+    }
   })
 })

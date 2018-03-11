@@ -51,7 +51,6 @@ shinyUI(
                             # Include our custom CSS
                             includeCSS("styles.css")
                           ),
-                          plotOutput("plot"),
                           # Controles para los diferentes filtros
                           absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                                         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
@@ -65,7 +64,8 @@ shinyUI(
                                         uiOutput("diseños"),
                                         # Por Barrio
                                         uiOutput("barrios")
-                          )
+                          ),
+                          plotOutput("plot")
                       )
              )
   )
