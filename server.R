@@ -5,6 +5,8 @@ library(raster)
 library(rgdal)
 library(car)
 library(lubridate)
+library(DescTools)
+library(pROC)
 
 shinyServer(function(input, output) {
   
@@ -43,9 +45,58 @@ shinyServer(function(input, output) {
     incProgress(25)
   })
   
+  # Función que contruye variable respuesta para modelo
+  buildRes <- function(base){
+    for (i in 1:length(base@data$GRAVEDAD)) {
+      if(base@data[i,"GRAVEDAD"]=="SOLO DAÑOS"){
+        base@data$var_res[i]=0
+      }
+      else{
+        base@data$var_res[i]=1
+      }
+    }
+    return(base)
+  }
+  
+  # withProgress(message="Construyendo modelo", value= 0,{
+  #   # Se copian las bases de datos para el modelo
+  #   accidentalidad2.15 <- accidentalidad.15
+  #   accidentalidad2.16 <- accidentalidad.16
+  #   accidentalidad2.17 <- accidentalidad.17
+  #   incProgress(10)
+  #   
+  #   # Creación variable respues por base
+  #   accidentalidad2.15 <- buildRes(accidentalidad2.15)
+  #   accidentalidad2.16 <- buildRes(accidentalidad2.16)
+  #   accidentalidad2.17 <- buildRes(accidentalidad2.17)
+  #   incProgress(15)
+  #   
+  #   # Omisión de NA's
+  #   accidentalidad2.15@data <- na.omit(accidentalidad2.15@data)
+  #   accidentalidad2.16@data <- na.omit(accidentalidad2.16@data) 
+  #   accidentalidad2.17@data <- na.omit(accidentalidad2.17@data) 
+  #   incProgress(15)
+  #   
+  #   # Ajustes al modelo logit
+  #   mod.15 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.15@data)
+  #   incProgress(20)
+  #   mod.16 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.16@data)
+  #   incProgress(20)
+  #   mod.17 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
+  #   incProgress(20)
+  # })
+  
   # Función para recargar Bases de datos de acuerdo al año 
   cargarBaseDeDatos <- reactive({
     switch(input$year,
+           "2015" = accidentalidad.15,
+           "2016" = accidentalidad.16,
+           "2017" = accidentalidad.17
+    )  
+  })
+  
+  cargarBaseDeDatos2 <- reactive({
+    switch(input$year2,
            "2015" = accidentalidad.15,
            "2016" = accidentalidad.16,
            "2017" = accidentalidad.17
@@ -63,12 +114,12 @@ shinyServer(function(input, output) {
     # Se muestran los nombres de las comunas cuando se eligen en el filtro "Zona"
     if(input$filtro == 'Zona'){
       selectInput("nombreZona", "Zonas",
-                  choices = c(unique(accidentalidad@data$COMUNA))
+                  choices = c(sort(unique(accidentalidad@data$COMUNA), na.last = FALSE))
       )
     }
   })
   
-  # Carga de nombres de acidentes 
+  # Carga de nombres de accidentes 
   output$tipoAccidente <- renderUI({
     
     # Recarga de base de datos
@@ -77,14 +128,35 @@ shinyServer(function(input, output) {
     # Se muestran los nombres de los accidentes cuando se eligen en el filtro "Accidente"
     if(input$filtro == 'Tipo de Accidente'){
       selectInput("nombreAccidente", "Accidentes",
-                  choices = c(as.character(unique(accidentalidad@data$CLASE)))
+                  choices = c(as.character(sort(unique(accidentalidad@data$CLASE), na.last = FALSE)))
       )
     }
   })
   
+  # Carga de nombres de diseños
+  output$diseños <- renderUI({
+    # Recarga de base de datos
+    accidentalidad2 <- cargarBaseDeDatos2()
+    
+    # Se muestran los nombres de los diseños cuando se eligen en el filtro2  "Diseño"
+      selectInput("nombreDiseños", "Diseño",
+                  choices = c(as.character(sort(unique(accidentalidad2@data$DISENO), na.last = FALSE)))
+      )
+    })
+  
+  # Carga de nombres de barrios
+  output$barrios<- renderUI({
+    # Recarga de base de datos
+    accidentalidad2 <- cargarBaseDeDatos2()
+    
+    selectInput("nombreBarrios", "Barrio",
+                choices = c(as.character(sort(unique(accidentalidad2@data$BARRIO), na.last = FALSE)))
+    )
+  })
+  
   # Carga del mapa
   output$map <- renderLeaflet({
-    
+
     # Recarga de base de datos
     accidentalidad <- cargarBaseDeDatos()
     
@@ -150,5 +222,12 @@ shinyServer(function(input, output) {
       m <- setView(m, mean(accidentalidad@coords[,1]), mean(accidentalidad@coords[,2]), zoom=14)
       m
     }
+  })
+  
+  output$plot <- renderPlot({
+    input$newplot
+    # Add a little noise to the cars data
+    cars2 <- cars + rnorm(nrow(cars))
+    plot(cars2)
   })
 })

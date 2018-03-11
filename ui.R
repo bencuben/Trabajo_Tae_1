@@ -5,7 +5,7 @@ library(leaflet)
 library(shinyTime)
 
 shinyUI(
-    
+  
   # Construcción de interfaz
   navbarPage("MAPAS",
              # Estadística Descriptiva: Tab para visualizar los mapas
@@ -29,8 +29,8 @@ shinyUI(
                                         selectInput(inputId="filtro", label="Filtro", choices= c( "Zona", "Hora", "Tipo de Accidente")),
                                         # Si se escoge Hora, cargar slider con rango de horas
                                         conditionalPanel("input.filtro == 'Hora'",
-                                                          sliderInput("hoursRange", "Rango de horas ",
-                                                                      min = 0, max = 24, value = c(10,11)),
+                                                         sliderInput("hoursRange", "Rango de horas ",
+                                                                     min = 0, max = 24, value = c(10,11)),
                                                          hr(),
                                                          fluidRow(column(3, verbatimTextOutput("value")))
                                         ),
@@ -45,6 +45,28 @@ shinyUI(
                           )
                       )
              ),
-             tabPanel(title= "Inferencia")
+             tabPanel(title= "Inferencia",
+                      div(class="outer",
+                          tags$head(
+                            # Include our custom CSS
+                            includeCSS("styles.css")
+                          ),
+                          plotOutput("plot"),
+                          # Controles para los diferentes filtros
+                          absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                        draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                                        width = 330, height = "auto",
+                                        h3("Controles", class="text-center"),
+                                        # Por año
+                                        selectInput(inputId="year2", label="Año", choices= c("2015", "2016", "2017")),
+                                        # Por Hora
+                                        sliderInput("Hora", "Hora de interés", min = 0 , max = 24, value = 8),
+                                        # Por Diseño
+                                        uiOutput("diseños"),
+                                        # Por Barrio
+                                        uiOutput("barrios")
+                          )
+                      )
+             )
   )
 )

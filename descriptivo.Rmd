@@ -22,7 +22,7 @@ library(leaflet)
 library(car)
 base1 <- read.csv2('Accidentalidad_2015.csv', sep = ",", na.strings = "", encoding = "UTF-8")
 base2 <- read.csv2('Accidentalidad_2016.csv', sep = ",", na.strings = "", encoding = "UTF-8")
-base3 <- read.csv2('Accidentalidad_2017.csv', sep = ",", na.strings = "", encoding = "UTF-8")
+base3 <- read.csv2('Acidentalidad_2017.csv', sep = ",", na.strings = "", encoding = "UTF-8")
 ```
 
 
