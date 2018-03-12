@@ -19,22 +19,24 @@ shinyServer(function(input, output) {
     incProgress(25)
     accidentalidad.16 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-     accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
+    accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
     
-    # Recodificación de las clase de accidente 2
+    # Recodificación de las clase de accidente 
     
-    accidentalidad.15@data$CLASE <- Recode(accidentalidad.15@data$CLASE, '"Atropello"="Atropello";
-  "Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante"; "Choque"="Choque";"Incendio"="Incendio";
-  "Otro"="Otro";"Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
+    accidentalidad.15@data$CLASE <- recode(accidentalidad.15@data$CLASE,'"Atropello"="Atropello";
+    "Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante"; "Choque"="Choque";"Incendio"="Incendio";
+    "Otro"="Otro"; "Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result=T)
     
-    accidentalidad.16@data$CLASE <- Recode(accidentalidad.16@data$CLASE, '"Atropello"="Atropello";
-  "Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante"; "Choque"="Choque";"Incendio"="Incendio";
-  "Otro"="Otro";"Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
+    accidentalidad.16@data$CLASE <- recode(accidentalidad.16@data$CLASE, '"Atropello"="Atropello";
+  "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
+  "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
+  "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
     
-    accidentalidad.17@data$CLASE <- Recode(accidentalidad.17@data$CLASE, '"Atropello"="Atropello";
-  "Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante"; "Choque"="Choque";"Incendio"="Incendio";
-  "Otro"="Otro";"Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
+    accidentalidad.17@data$CLASE <- recode(accidentalidad.17@data$CLASE, '"Atropello"="Atropello";
+ "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
+  "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
+  "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
     
     
     
@@ -86,7 +88,7 @@ shinyServer(function(input, output) {
   })
   
   cargarBaseDeDatos2 <- reactive({
-      accidentalidad2.17
+    accidentalidad2.17
   })  
   
   ### FIN Zona de definiciones###
@@ -100,7 +102,7 @@ shinyServer(function(input, output) {
     # Se muestran los nombres de las comunas cuando se eligen en el filtro "Zona"
     if(input$filtro == 'Zona'){
       selectInput("nombreZona", "Zonas",
-                  choices = c(sort(unique(accidentalidad@data$COMUNA), na.last = FALSE))
+                  choices = c(sort(unique(accidentalidad@data$COMUNA)))
       )
     }
   })
@@ -114,7 +116,7 @@ shinyServer(function(input, output) {
     # Se muestran los nombres de los accidentes cuando se eligen en el filtro "Accidente"
     if(input$filtro == 'Tipo de Accidente'){
       selectInput("nombreAccidente", "Accidentes",
-                  choices = c(as.character(sort(unique(accidentalidad@data$CLASE), na.last = FALSE)))
+                  choices = c(as.character(sort(unique(accidentalidad@data$CLASE))))
       )
     }
   })
@@ -213,7 +215,7 @@ shinyServer(function(input, output) {
   output$plot <- renderPlot({
     
     if(!is.null(input$nombreDiseños) && !is.null(input$nombreBarrios)){
-
+      
       hora <- {if(input$Hora == 0 || input$Hora == 24){
         paste(12,":00 AM")
       } else if(input$Hora < 12){
