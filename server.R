@@ -19,7 +19,7 @@ shinyServer(function(input, output) {
     incProgress(25)
     accidentalidad.16 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
-    accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
+     accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
     incProgress(25)
     
     # Recodificación de las clase de accidente 2
@@ -60,29 +60,19 @@ shinyServer(function(input, output) {
   
   withProgress(message="Construyendo modelo", value= 0,{
     # Se copian las bases de datos para el modelo
-    accidentalidad2.15 <- accidentalidad.15
-    accidentalidad2.16 <- accidentalidad.16
     accidentalidad2.17 <- accidentalidad.17
     incProgress(10)
     
     # Creación variable respues por base
-    accidentalidad2.15 <- buildRes(accidentalidad2.15)
-    accidentalidad2.16 <- buildRes(accidentalidad2.16)
     accidentalidad2.17 <- buildRes(accidentalidad2.17)
     incProgress(15)
     
     # Omisión de NA's
-    accidentalidad2.15@data <- na.omit(accidentalidad2.15@data)
-    accidentalidad2.16@data <- na.omit(accidentalidad2.16@data) 
     accidentalidad2.17@data <- na.omit(accidentalidad2.17@data) 
     incProgress(15)
     
     # Ajustes al modelo logit
-    mod.15 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.15@data)
-    incProgress(20)
-    mod.16 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.16@data)
-    incProgress(20)
-    mod.17 <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
+    mod <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
     incProgress(20)
   })
   
@@ -96,12 +86,8 @@ shinyServer(function(input, output) {
   })
   
   cargarBaseDeDatos2 <- reactive({
-    switch(input$year2,
-           "2015" = accidentalidad2.15,
-           "2016" = accidentalidad2.16,
-           "2017" = accidentalidad2.17
-    )  
-  })
+      accidentalidad2.17
+  })  
   
   ### FIN Zona de definiciones###
   
@@ -227,12 +213,7 @@ shinyServer(function(input, output) {
   output$plot <- renderPlot({
     
     if(!is.null(input$nombreDiseños) && !is.null(input$nombreBarrios)){
-      mod <- switch(input$year2,
-                    "2015" = mod.15,
-                    "2016" = mod.16,
-                    "2017" = mod.17
-      )
-      
+
       hora <- {if(input$Hora == 0 || input$Hora == 24){
         paste(12,":00 AM")
       } else if(input$Hora < 12){

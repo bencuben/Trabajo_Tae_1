@@ -56,8 +56,6 @@ shinyUI(
                                         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                                         width = 330, height = "auto",
                                         h3("Controles", class="text-center"),
-                                        # Por año
-                                        selectInput(inputId="year2", label="Año", choices= c("2015", "2016", "2017")),
                                         # Por Hora
                                         sliderInput("Hora", "Hora de interés", min = 0 , max = 24, value = 8),
                                         # Por Diseño
