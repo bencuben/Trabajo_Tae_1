@@ -29,14 +29,14 @@ shinyServer(function(input, output) {
     "Otro"="Otro"; "Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result=T)
     
     accidentalidad.16@data$CLASE <- recode(accidentalidad.16@data$CLASE, '"Atropello"="Atropello";
-  "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
-  "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
-  "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
+    "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
+    "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
+    "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
     
     accidentalidad.17@data$CLASE <- recode(accidentalidad.17@data$CLASE, '"Atropello"="Atropello";
- "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
-  "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
-  "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
+    "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
+    "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
+    "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
     
     
     
@@ -211,6 +211,7 @@ shinyServer(function(input, output) {
       m
     }
   })
+
   
   output$plot <- renderPlot({
     
@@ -233,10 +234,19 @@ shinyServer(function(input, output) {
       
       prob <- round(1/(exp(-log.odds)+1),4)
       
-      plot(c(0,10),c(0,10), type = "n", axes = FALSE,
+      accidentalidad2 <- cargarBaseDeDatos2()
+      if(input$nombreBarrios ==0){
+        tamaño <- length(subset(accidentalidad2,accidentalidad2@data$BARRIO == 0))
+      } else {
+        tamaño <- length(subset(accidentalidad2,accidentalidad2@data$BARRIO == input$nombreBarrios))
+      }
+      
+      plot(c(0,20),c(0,20), type = "n", axes = FALSE,
            ylab = "", xlab = "", asp = 1)
-      text(3,5,"Probabilidad de lesión o muerte en accidente: \n",cex=1.2, col="red")
-      text(3,5,paste("\n",prob*100, "%"), cex = 2 , col="red")
+      text(3,10, paste("Descripción: \n El modelo utiliza los datos más actuales (2017) \n . Para realizar la inferencia se 
+      hace uso de un modelo logit", "\n", "El número de accidentes en este barrio en el año 2017 fue de: \n" , tamaño, "\n",
+                      "\n Probabilidad de lesión o muerte en accidente: \n"), cex = 1.2, col="black")
+      text(3,10,paste("\n \n \n \n \n \n ",prob*100, "%"), cex = 2 , col="black")
     }
   })
 })

@@ -9,7 +9,7 @@ shinyUI(
   # Construcción de interfaz
   navbarPage("MAPAS",
              # Estadística Descriptiva: Tab para visualizar los mapas
-             tabPanel(title= "Estadística Descriptiva",
+             tabPanel(title= "Filtrado",
                       div(class="outer",
                           tags$head(
                             
@@ -45,12 +45,13 @@ shinyUI(
                           )
                       )
              ),
-             tabPanel(title= "Inferencia",
+             tabPanel(title= "Modelo de inferencia",
                       div(class="outer",
                           tags$head(
                             # Include our custom CSS
                             includeCSS("styles.css")
                           ),
+                          textOutput("texto"),
                           # Controles para los diferentes filtros
                           absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                                         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
