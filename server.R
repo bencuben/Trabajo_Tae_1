@@ -10,73 +10,10 @@ library(pROC)
 
 shinyServer(function(input, output) {
   
-  ###Zona de definiciones###
+  ##Zona de definiciones###
   
-  # Mientras se cargan las bases de datos se muestran barra de progreso de carga
-  withProgress(message="Cargando base de datos", value = 0, {
-    # Lectura base de datos
-    accidentalidad.15 <- shapefile("Accidentalidad_2015/Accidentalidad_2015.shp",encoding="UTF-8",use_iconv=TRUE)
-    incProgress(25)
-    accidentalidad.16 <- shapefile("Accidentalidad_2016/Accidentalidad_2016.shp",encoding="UTF-8",use_iconv=TRUE)
-    incProgress(25)
-    accidentalidad.17 <- shapefile("Accidentalidad_2017/Accidentalidad_2017.shp",encoding="UTF-8",use_iconv=TRUE)
-    incProgress(25)
-    
-    # Recodificación de las clase de accidente 
-    
-    accidentalidad.15@data$CLASE <- recode(accidentalidad.15@data$CLASE,'"Atropello"="Atropello";
-    "Caída Ocupante"="Caída de Ocupante";"Caida Ocupante"="Caída de Ocupante"; "Choque"="Choque";"Incendio"="Incendio";
-    "Otro"="Otro"; "Volcamiento"="Volcamiento"; "Choque y Atropello"="Choque y Atropello"',as.factor.result=T)
-    
-    accidentalidad.16@data$CLASE <- recode(accidentalidad.16@data$CLASE, '"Atropello"="Atropello";
-    "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
-    "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
-    "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
-    
-    accidentalidad.17@data$CLASE <- recode(accidentalidad.17@data$CLASE, '"Atropello"="Atropello";
-    "Caida Ocupante"="Caída de Ocupante"; "Caída Ocupante"="Caída de Ocupante"; "Caída de Ocupante" = "Caída de Ocupante";
-    "Choque"="Choque";"Incendio"="Incendio"; "Otro"="Otro";"Volcamiento"="Volcamiento"; 
-    "Choque y Atropello"="Choque y Atropello"',as.factor.result = T)
-    
-    
-    
-    # recodificacion de las horas
-    accidentalidad.15@data$HORA<-parse_date_time(accidentalidad.15@data$HORA, '%I:%M %p')
-    accidentalidad.16@data$HORA<-parse_date_time(accidentalidad.16@data$HORA, '%I:%M %p')
-    accidentalidad.17@data$HORA<-parse_date_time(accidentalidad.17@data$HORA, '%I:%M %p')
-    incProgress(25)
-  })
-  
-  # Función que contruye variable respuesta para modelo
-  buildRes <- function(base){
-    for (i in 1:length(base@data$GRAVEDAD)) {
-      if(base@data[i,"GRAVEDAD"]=="SOLO DAÑOS"){
-        base@data$var_res[i]=0
-      }
-      else{
-        base@data$var_res[i]=1
-      }
-    }
-    return(base)
-  }
-  
-  withProgress(message="Construyendo modelo", value= 0,{
-    # Se copian las bases de datos para el modelo
-    accidentalidad2.17 <- accidentalidad.17
-    incProgress(10)
-    
-    # Creación variable respues por base
-    accidentalidad2.17 <- buildRes(accidentalidad2.17)
-    incProgress(15)
-    
-    # Omisión de NA's
-    accidentalidad2.17@data <- na.omit(accidentalidad2.17@data) 
-    incProgress(15)
-    
-    # Ajustes al modelo logit
-    mod <- glm(var_res~HORA+DISENO+BARRIO,family = "binomial", data = accidentalidad2.17@data)
-    incProgress(20)
-  })
+  #Carga de base de datos recodificada desde .Rdata
+  load("~/Documentos/Accidentalidad/.RData")
   
   # Función para recargar Bases de datos de acuerdo al año 
   cargarBaseDeDatos <- reactive({
