@@ -12,7 +12,7 @@ shinyServer(function(input, output) {
   
   ##Zona de definiciones###
   
-  #Carga de base de datos recodificada desde .Rdata
+  #Carga de base de datos recodificada y modelo desde .Rdata
   load(".RData")
   
   # Función para recargar Bases de datos de acuerdo al año 
