@@ -59,10 +59,10 @@ shinyUI(
                                         h3("Controles", class="text-center"),
                                         # Por Hora
                                         sliderInput("Hora", "Hora de interés", min = 0 , max = 24, value = 8),
+                                        # Por Clase
+                                        uiOutput("clases"),
                                         # Por Diseño
-                                        uiOutput("diseños"),
-                                        # Por Barrio
-                                        uiOutput("barrios")
+                                        uiOutput("diseños")
                           ),
                           plotOutput("plot")
                       )

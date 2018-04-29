@@ -5,9 +5,9 @@ account: dacanoc
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 288216
-bundleId: 1346055
+bundleId: 1346104
 url: https://dacanoc.shinyapps.io/Entrega1/
-when: 1525031511.9411
+when: 1525035082.95818
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: descriptivo.Rmd|funcion_modelo_logit.R|modelo.bosque|proyecto_1_mapas.html|proyecto_1 mapas.Rmd|Pruebas.Rmd|Accidentalidad_2016/Accidentalidad_2016.cpg|Accidentalidad_2016/Accidentalidad_2016.dbf|Accidentalidad_2016/Accidentalidad_2016.prj|Accidentalidad_2016/Accidentalidad_2016.shp|Accidentalidad_2016/Accidentalidad_2016.shx|Accidentalidad_2017/Accidentalidad_2017.cpg|Accidentalidad_2017/Accidentalidad_2017.dbf|Accidentalidad_2017/Accidentalidad_2017.prj|Accidentalidad_2017/Accidentalidad_2017.shp|Accidentalidad_2017/Accidentalidad_2017.shx
+ignoredFiles: descriptivo.Rmd|funcion_modelo_logit.R|proyecto_1_mapas.html|proyecto_1 mapas.Rmd|Pruebas.Rmd|Accidentalidad_2016/Accidentalidad_2016.cpg|Accidentalidad_2016/Accidentalidad_2016.dbf|Accidentalidad_2016/Accidentalidad_2016.prj|Accidentalidad_2016/Accidentalidad_2016.shp|Accidentalidad_2016/Accidentalidad_2016.shx|Accidentalidad_2017/Accidentalidad_2017.cpg|Accidentalidad_2017/Accidentalidad_2017.dbf|Accidentalidad_2017/Accidentalidad_2017.prj|Accidentalidad_2017/Accidentalidad_2017.shp|Accidentalidad_2017/Accidentalidad_2017.shx

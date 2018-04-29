@@ -57,6 +57,27 @@ shinyServer(function(input, output) {
       )
     }
   })
+ 
+  # Carga de nombres de los clases
+  output$clases <- renderUI({
+    # Recarga de base de datos
+    accidentalidad2 <- cargarBaseDeDatos2()
+    
+    selectInput("nombreClases", "Clase",
+                choices = c(as.character(sort(unique(accidentalidad2@data$CLASE))))
+    )
+  })
+  
+  # Carga de nombres de los dias
+  output$dias <- renderUI({
+    # Recarga de base de datos
+    accidentalidad2 <- cargarBaseDeDatos2()
+    
+    # Se muestran los nombres de los diseños cuando se eligen en el filtro2  "Diseño"
+    selectInput("nombreDias", "Día",
+                choices = c(as.character(sort(unique(accidentalidad2@data$DIA))))
+    )
+  })
   
   # Carga de nombres de diseños
   output$diseños <- renderUI({
@@ -151,9 +172,9 @@ shinyServer(function(input, output) {
 
   
   output$plot <- renderPlot({
-    
-    if(!is.null(input$nombreDiseños) && !is.null(input$nombreBarrios)){
-      
+
+    if(!is.null(input$Hora)){
+
       hora <- {if(input$Hora == 0 || input$Hora == 24){
         paste(12,":00 AM")
       } else if(input$Hora < 12){
@@ -165,8 +186,8 @@ shinyServer(function(input, output) {
       }
       
       hora <- parse_date_time(hora, '%I:%M %p') 
-      
-      log.odds <- predict(modbosque,data.frame(HORA=hora,BARRIO=input$nombreBarrios,DISENO=input$nombreDiseños))
+      log.odds <- round(predict(mod.bosque, data.frame(HORA=hora, CLASE = input$nombreClases ,DISENO=input$nombreDiseños, 
+                                                      type="prob")[,2]),4)
       round(1/(exp(-log.odds)+1),4)
       
       prob <- round(1/(exp(-log.odds)+1),4)
