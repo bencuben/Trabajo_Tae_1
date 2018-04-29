@@ -166,7 +166,7 @@ shinyServer(function(input, output) {
       
       hora <- parse_date_time(hora, '%I:%M %p') 
       
-      log.odds <- predict(mod,data.frame(HORA=hora,BARRIO=input$nombreBarrios,DISENO=input$nombreDiseños))
+      log.odds <- predict(modbosque,data.frame(HORA=hora,BARRIO=input$nombreBarrios,DISENO=input$nombreDiseños))
       round(1/(exp(-log.odds)+1),4)
       
       prob <- round(1/(exp(-log.odds)+1),4)
